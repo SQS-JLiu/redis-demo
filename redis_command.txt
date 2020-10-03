@@ -1,0 +1,126 @@
+flushdb   清空当前数据库
+flushall  清空所有数据库
+keys *  查看所有key
+exists xxx 是否存在xxx key
+expire xxx 10 设置过期时间为10s  （可用于设置session的过期时间）
+ttl   xxx  查看xxx的剩余时间
+type  xxx 查看xxx的类型（string，list，hash，sort，zsort）
+
+
+Redis单线程   Redis的甁劲是根据机器的内存和网络带宽
+
+redis是将所有的数据全部放在内存中，所以使用单线程去操作效率就是最高的
+多线程(CPU上下文切换，耗时长)
+
+
+1）String类型：
+set key1 value1
+get key1
+exists key1
+append key1 value2  #追加字符串
+strlen  key1        #查看字符串的长度
+incr views  #自加1
+decr views  #自减1
+incrby views 10 #自增10
+decrby views 10 #自减10
+getrange key1 0 3   #截取0-3下标的字符串
+getrange key1 0 -1  #相当于get key1，获取整个字符串
+setrange key2 1 xxx #替换指定位置开始的字符串
+setex #设置过期时间
+setex key3 30 value3  #设置值为value3,30s后过期
+setnx #不存在设置，如果不存在则设置值
+setnx mykey "redis"
+mset k1 v1 k2 v2 k3 v3 #同时批量设置
+mget k1 k2 k3          #同时批量获取
+msetnx k1 v1 k2 v2     #msetnx是一个原子性的操作，要么一起成功，要么一起失败
+
+#先get再set，如果key1有值则返回值，没有则返回null，并设置key1的值为value2
+getset key1 value2
+
+·计数器
+·统计多单位的数量
+·对象缓存存储
+
+2）List类型：
+·list可以实现栈，队列，阻塞队列
+
+lpush  list1 value1 #在左边插入值
+lpush  list2 value2
+lrange 0 1
+1)value2
+2)value1
+Rpush list1 value2  #在右边插入值
+Lpop list1  #输出左边的一个值
+Rpop list1  #输出右边的一个值
+lindex list1 1 #通过下标获得list1中的某一个值
+Llen list1     #返回列表的长度
+lrem list1 1 value1 #移除1个为value1的值
+ltrim list1 1 2 #通过下标截去指定的长度
+rpoplpush list1 list2 #移除list1的右边的值并插入到list2中
+
+lset #将列表中指定的值替换为另外一个值
+lset list1 0 value2 #如果列表不存在会报错
+
+#在mylist的value1前插入value2
+linsert mylist before value1 value2
+#在mylist的value2后插入value3
+linsert mylist after value2 value3
+
+·消息队列
+·栈
+
+3）Set类型：
+set中的值是不能重复的
+
+sadd myset value1  #增加元素
+smembers myset     #查看set的所有元素 
+sismember myset value1 #是否是set中的元素
+scard myset        #获取set中的元素个数
+srem myset value1  #移除元素value1
+
+set是无序不重复集合
+srandmember myset   #随机抽取一个元素
+srandmember myset 2 #随机抽取2个元素
+
+#随机删除set集合中的一个value
+spop myset
+#将一个指定的值value1从myset移动到myset2
+smove myset myset2 value1
+
+#微博，B站，共同关注（并集）
+Sdiff myset1 myset2  #获取两个集合不同的值
+Sinter myset1 myset2 #交集
+sunion myset1 myset2 #并集
+
+
+4)Hash哈希类型：
+hset myhash key1 value1
+hmset myhash key1 value1 key2 value2
+hmget myhash key1 key2  #获取指定key1，key2
+hgetall myhash          #获取所有
+hdel myhash key1        #删除指定的key1
+hlen myhash             #获取长度
+hexists myhash key      #是否存指定key
+hvals myhash            #获取所有值
+hincrby myhash key 2     #指定key的值增加2
+hsetnx myhash key1 value1 #如果不存在则设置
+
+5)Zset(有序集合)
+zadd myset 1 value1
+zadd myset 2 value2
+zadd myset 3 value3 4 value4
+#从最小到最大排序输出
+zrangebyscore myset -inf +inf 
+#从最小到最大排序输出并显示出分数
+zrangebyscore myset -inf +inf withscores
+#从最小到最大排序输出，显示出分数小于2500的，并显示分数
+zrangebyscore myset -inf 2500 withscores
+
+zrem myset value1    #移除value1
+zrange myset 0 -1    #显示所有值
+zcard  myset         #有序集合的长度
+zrevrange myset 0 -1 #从大到小排序
+zcount myset 1 3     #统计score在1-3之间的值数量
+·set排序  存储班级成绩表，工资排序表
+·普通消息1，重要消息2，带权重进行判断
+·排行榜应用，取Top N 测试

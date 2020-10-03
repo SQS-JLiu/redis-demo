@@ -1,0 +1,70 @@
+1)geospatial地理位置
+推算出两地之间的位置
+geo底层的实现原理其实就是Zset，我们可以使用Zset命令来操作geo
+#添加位置
+geoadd key 经度 维度 名称
+geoadd china:city 116.40 39.90 beijing
+geoadd china:city 121.47 31.23 shanghai
+
+#获取当前定位
+geopos china:city beijing
+
+
+#北京到上海的直线距离，单位km千米
+geodist china:city beijing shanghai km
+
+#附近的人（获取所有附近人的地址，定位），通过半径来查询
+#查询在(110,30)经纬度附近500km内的城市
+georadius china:city 110 30 500 km
+
+#显示到中心距离的位置
+georadius china:city 110 30 500 km withdist
+
+#显示他人的定位信息
+georadius china:city 110 30 500 km withcoord
+
+#筛选出指定的结果
+georadius china:city 110 30 500 km withdist withcoord
+
+#找出指定元素周围的其它元素
+georadiusbbymember china:city shanghai 1000km
+
+#将二维的经纬度转换为一维的字符串，两个位置越近，字符串越相似
+geohash china:city beijing shanghai
+
+#geo底层的实现原理其实就是Zset，我们可以使用Zset命令来操作geo
+zrange china:city 0 -1
+
+
+2)Hyperloglog
+A{1,3,5,7,8,7}  b{1,3,5,7,8}
+基数（不重复的元素）= 5
+传统方式,set保存用户id，然后统计set中的元素数量作为元素数量的标准！
+这个方式如果保存大量的用户id，就会比较麻烦。
+
+PFadd mykey a b c d e f g h i j
+PFcount mykey 
+
+PFadd mykey2 i j k  z x c v
+PFcount mykey2
+
+PFmerge mykey3 mykey mykey2 #合并mykey和mykey2
+PFcount mykey3 #输出不重复的key的数量
+
+如果允许容错可以使用，用于数量统计，0.81%错误率
+
+3）Bitmaps
+位运算，位存储
+·统计用户信息，活跃，不活跃！
+·登录，未登录
+·打卡，365打卡！两个状态的均可使用bitmaps
+# setbit key index 0/1
+setbit sign 0 1
+setbit sign 1 0
+setbit sign 2 0
+setbit sign 3 1
+# getbit key index
+getbit sign 2
+
+#bitcount key 统计key的1的个数
+bitcount sign
